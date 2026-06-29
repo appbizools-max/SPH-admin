@@ -1710,18 +1710,33 @@ const SuperAdminDashboard = () => {
     // Consultations
     filteredRevenuePatients.forEach(p => {
       const hasMed = p.itemsPaid?.medicine > 0;
-      const hasCons = p.itemsPaid?.consultation > 0 || (!p.itemsPaid?.consultation && !p.itemsPaid?.medicine);
+      const hasDiet = p.itemsPaid?.dietPlan > 0;
+      const hasCons = p.itemsPaid?.consultation > 0 || (!p.itemsPaid?.consultation && !p.itemsPaid?.medicine && !p.itemsPaid?.dietPlan);
 
       const consAmt = (() => {
         if (p.paymentStatus !== 'paid') return 0;
-        if (hasMed && hasCons) return getExactPatientAmount(p); // Combined total amount
-        if (p.itemsPaid?.consultation !== undefined) return Number(p.itemsPaid.consultation);
-        return getExactPatientAmount(p);
+        let amount = Number(p.paymentAmount || p.amountPaid || p.amount || p.totalAmount || p.consultationFee || 0);
+        if (p.itemsPaid) {
+          const cons = Number(p.itemsPaid.consultation || 0);
+          const med = Number(p.itemsPaid.medicine || 0);
+          const diet = Number(p.itemsPaid.dietPlan || 0);
+          let other = 0;
+          if (Array.isArray(p.itemsPaid.otherFees)) {
+            other = p.itemsPaid.otherFees.reduce((acc, f) => acc + Number(f.amount || 0), 0);
+          }
+          const totalItems = cons + med + diet + other;
+          if (totalItems > 0) amount = totalItems;
+        }
+        return amount;
       })();
 
       let rowType = 'Consultation';
-      if (hasMed) {
+      if (hasMed && hasDiet) {
+        rowType = 'Consultation & Medicine Fee / Diet Plan';
+      } else if (hasMed) {
         rowType = 'Consultation & Medicine Fee';
+      } else if (hasDiet) {
+        rowType = 'Consultation / Diet Plan';
       }
 
       const timestamp = p.paymentCollectedAt ? new Date(p.paymentCollectedAt).getTime() : (p.appointmentDate ? new Date(p.appointmentDate).getTime() : 0);
@@ -2013,13 +2028,11 @@ const SuperAdminDashboard = () => {
   const indexOfLastAllTx = safeAllTxCurrentPage * allTxPerPage;
   const indexOfFirstAllTx = indexOfLastAllTx - allTxPerPage;
   const currentAllHistoryTransactions = allHistoryTransactions.slice(indexOfFirstAllTx, indexOfLastAllTx);
-
   useEffect(() => {
     if (allTxCurrentPage > allTxTotalPages) {
       setAllTxCurrentPage(allTxTotalPages);
     }
   }, [allTxTotalPages, allTxCurrentPage]);
-
   const renderRevenueFilters = (hideExport = false) => (
     <div className="glass-panel" style={{ padding: '16px', marginBottom: '20px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '12px', alignItems: 'flex-end' }}>
       <div className="form-group" style={{ marginBottom: 0 }}>

@@ -5262,7 +5262,6 @@ For queries, contact support at 9030 176 176 or visit www.spiritualhomeo.com`;
           }
         } : {})
       };
-
       const docRef = doc(db, 'nutrition_plans', selectedNutritionPayPlan.id);
       await updateDoc(docRef, updatePayload);
 
@@ -7007,14 +7006,35 @@ For queries, contact support at 9030 176 176 or visit www.spiritualhomeo.com`;
                                     </>
                                   );
                                 })()}
-
-
                                 {/* Payment Status / Invoice Sharing */}
                                 {item.paymentStatus === 'paid' ? (
                                   <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
                                     <span style={{ fontSize: '11px', color: '#10b981', fontWeight: '700', marginRight: '4px' }}>
                                       ✓ Paid
                                     </span>
+                                    {/* Edit / View Options for Paid items */}
+                                    <button
+                                      onClick={() => {
+                                        setSelectedBill({ ...item, source: item.source });
+                                        setShowPayModal(true);
+                                      }}
+                                      title="Edit / View Details"
+                                      style={{
+                                        width: '32px',
+                                        height: '32px',
+                                        borderRadius: '50%',
+                                        border: '1.5px solid var(--primary-color)',
+                                        background: 'rgba(99, 102, 241, 0.07)',
+                                        color: 'var(--primary-color)',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        cursor: 'pointer',
+                                        flexShrink: 0
+                                      }}
+                                    >
+                                      <Edit size={15} />
+                                    </button>
                                     {/* Print/Download Invoice Icon Button */}
                                     <button
                                       onClick={() => {
@@ -9488,121 +9508,126 @@ For queries, contact support at 9030 176 176 or visit www.spiritualhomeo.com`;
                         )}
                       </div>
 
-                      {/* Reception Notes Card */}
-                      <div className="glass-panel" style={{ padding: '16px', background: 'rgba(255,255,255,0.02)' }}>
-                        <h4 style={{ margin: '0 0 12px 0', fontSize: '14px', color: 'var(--primary-color)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <FileText size={16} /> Receptionist Notes & Instructions
-                        </h4>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                          <textarea
-                            className="glass-input"
-                            style={{ width: '100%', minHeight: '60px', resize: 'vertical', fontSize: '13px', margin: 0 }}
-                            placeholder="Add notes, follow-up instructions, or comments here..."
-                            value={payNotes}
-                            onChange={(e) => setPayNotes(e.target.value)}
-                          />
-                          <button
-                            type="button"
-                            className="btn-secondary"
-                            onClick={handleUpdatePayNotes}
-                            disabled={uploadingPayPrescription}
-                            style={{ alignSelf: 'flex-end', padding: '6px 12px', fontSize: '12px', margin: 0 }}
-                          >
-                            💾 Save Notes
-                          </button>
-                        </div>
-                      </div>
+                      {!(isPaid && !isUnlocked) && (
+                        <>
+                          {/* Reception Notes Card */}
+                          <div className="glass-panel" style={{ padding: '16px', background: 'rgba(255,255,255,0.02)' }}>
+                            <h4 style={{ margin: '0 0 12px 0', fontSize: '14px', color: 'var(--primary-color)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                              <FileText size={16} /> Receptionist Notes & Instructions
+                            </h4>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                              <textarea
+                                className="glass-input"
+                                style={{ width: '100%', minHeight: '60px', resize: 'vertical', fontSize: '13px', margin: 0 }}
+                                placeholder="Add notes, follow-up instructions, or comments here..."
+                                value={payNotes}
+                                onChange={(e) => setPayNotes(e.target.value)}
+                              />
+                              <button
+                                type="button"
+                                className="btn-secondary"
+                                onClick={handleUpdatePayNotes}
+                                disabled={uploadingPayPrescription}
+                                style={{ alignSelf: 'flex-end', padding: '6px 12px', fontSize: '12px', margin: 0 }}
+                              >
+                                💾 Save Notes
+                              </button>
+                            </div>
+                          </div>
 
-                      {/* Prescriptions (Upload / Remove) Card */}
-                      <div className="glass-panel" style={{ padding: '16px', background: 'rgba(255,255,255,0.02)' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                          <h4 style={{ margin: 0, fontSize: '14px', color: 'var(--primary-color)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <Upload size={16} /> Uploaded Prescriptions & Canvas
-                          </h4>
-                          <div>
-                            <input
-                              type="file"
-                              accept="image/*"
-                              onChange={handleUploadPayPrescription}
-                              disabled={uploadingPayPrescription}
-                              style={{ display: 'none' }}
-                              id="pay-prescription-upload"
-                            />
-                            <label
-                              htmlFor="pay-prescription-upload"
-                              className="btn-secondary"
-                              style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', cursor: 'pointer', padding: '6px 12px', fontSize: '12px', margin: 0 }}
-                            >
-                              <Plus size={14} /> Upload Image
-                            </label>
-                          </div>
-                        </div>
-                        {uploadingPayPrescription && (
-                          <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                            <RefreshCw className="spin" size={12} /> Syncing prescriptions...
-                          </div>
-                        )}
-                        {payPrescriptionUrls.length === 0 ? (
-                          <p style={{ margin: 0, fontSize: '12px', color: 'var(--text-muted)', fontStyle: 'italic' }}>No physical prescriptions uploaded yet.</p>
-                        ) : (
-                          <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-                            {payPrescriptionUrls.map((url, idx) => (
-                              <div key={idx} style={{ position: 'relative', width: '80px', height: '80px', borderRadius: '8px', overflow: 'hidden', border: '1px solid var(--border-color)', background: 'rgba(0,0,0,0.1)' }}>
-                                <img
-                                  src={url}
-                                  alt={`Prescription ${idx + 1}`}
-                                  style={{ width: '100%', height: '100%', objectFit: 'cover', cursor: 'zoom-in' }}
-                                  onClick={() => setPreviewImage(url)}
-                                />
-                                <button
-                                  type="button"
-                                  onClick={() => handleRemovePayPrescription(idx)}
+                          {/* Prescriptions (Upload / Remove) Card */}
+                          <div className="glass-panel" style={{ padding: '16px', background: 'rgba(255,255,255,0.02)' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                              <h4 style={{ margin: 0, fontSize: '14px', color: 'var(--primary-color)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <Upload size={16} /> Uploaded Prescriptions & Canvas
+                              </h4>
+                              <div>
+                                <input
+                                  type="file"
+                                  accept="image/*"
+                                  onChange={handleUploadPayPrescription}
                                   disabled={uploadingPayPrescription}
-                                  style={{ position: 'absolute', top: '4px', right: '4px', background: 'rgba(239, 68, 68, 0.9)', border: 'none', borderRadius: '50%', width: '18px', height: '18px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', cursor: 'pointer', padding: 0 }}
+                                  style={{ display: 'none' }}
+                                  id="pay-prescription-upload"
+                                />
+                                <label
+                                  htmlFor="pay-prescription-upload"
+                                  className="btn-secondary"
+                                  style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', cursor: 'pointer', padding: '6px 12px', fontSize: '12px', margin: 0 }}
                                 >
-                                  <X size={10} />
-                                </button>
+                                  <Plus size={14} /> Upload Image
+                                </label>
                               </div>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Doctor's Digital Prescription & Notes */}
-                      {(selectedBill?.prescriptionText || payPatientDoc?.prescriptionText || (selectedBill?.medicines && selectedBill?.medicines.length > 0) || (payPatientDoc?.medicines && payPatientDoc?.medicines.length > 0) || selectedBill?.medicalHistory || payPatientDoc?.medicalHistory) && (
-                        <div className="glass-panel" style={{ padding: '16px', background: 'rgba(255,255,255,0.02)', marginTop: '16px' }}>
-                          <h4 style={{ margin: '0 0 12px 0', fontSize: '14px', color: 'var(--primary-color)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <Clipboard size={16} /> Doctor's Consultation Notes
-                          </h4>
-
-                          {(selectedBill?.medicalHistory || payPatientDoc?.medicalHistory) && (
-                            <div style={{ marginBottom: '12px', fontSize: '13px', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '10px' }}>
-                              <strong style={{ color: 'var(--text-muted)' }}>Medical History:</strong>
-                              <p style={{ margin: '4px 0 0 0', color: 'var(--text-main)', whiteSpace: 'pre-wrap' }}>{selectedBill?.medicalHistory || payPatientDoc?.medicalHistory}</p>
                             </div>
-                          )}
-
-                          {(selectedBill?.prescriptionText || payPatientDoc?.prescriptionText) && (
-                            <div style={{ marginBottom: '12px', fontSize: '13px' }}>
-                              <strong style={{ color: 'var(--text-muted)' }}>Diagnosis & Notes:</strong>
-                              <p style={{ margin: '4px 0 0 0', color: 'var(--text-main)', whiteSpace: 'pre-wrap' }}>{selectedBill?.prescriptionText || payPatientDoc?.prescriptionText}</p>
-                            </div>
-                          )}
-
-                          {((selectedBill?.medicines && selectedBill.medicines.length > 0) || (payPatientDoc?.medicines && payPatientDoc.medicines.length > 0)) && (
-                            <div style={{ fontSize: '13px' }}>
-                              <strong style={{ color: 'var(--text-muted)' }}>Prescribed Medicines:</strong>
-                              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginTop: '6px' }}>
-                                {(selectedBill?.medicines || payPatientDoc?.medicines).map((med, idx) => (
-                                  <div key={idx} style={{ background: 'rgba(255,255,255,0.05)', padding: '8px', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.1)' }}>
-                                    <div style={{ fontWeight: 'bold', color: 'var(--text-main)' }}>{med.name} <span style={{ fontWeight: 'normal', fontSize: '11px', color: 'var(--text-muted)' }}>({med.type})</span></div>
-                                    <div style={{ color: 'var(--text-muted)', fontSize: '12px', marginTop: '2px' }}>Dosage: {med.timing} | Duration: {med.duration}</div>
+                            {uploadingPayPrescription && (
+                              <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                <RefreshCw className="spin" size={12} /> Syncing prescriptions...
+                              </div>
+                            )}
+                            {payPrescriptionUrls.length === 0 ? (
+                              <p style={{ margin: 0, fontSize: '12px', color: 'var(--text-muted)', fontStyle: 'italic' }}>No physical prescriptions uploaded yet.</p>
+                            ) : (
+                              <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                                {payPrescriptionUrls.map((url, idx) => (
+                                  <div key={idx} style={{ position: 'relative', width: '80px', height: '80px', borderRadius: '8px', overflow: 'hidden', border: '1px solid var(--border-color)', background: 'rgba(0,0,0,0.1)' }}>
+                                    <img
+                                      src={url}
+                                      alt={`Prescription ${idx + 1}`}
+                                      style={{ width: '100%', height: '100%', objectFit: 'cover', cursor: 'zoom-in' }}
+                                      onClick={() => setPreviewImage(url)}
+                                    />
+                                    <button
+                                      type="button"
+                                      onClick={() => handleRemovePayPrescription(idx)}
+                                      disabled={uploadingPayPrescription}
+                                      style={{ position: 'absolute', top: '4px', right: '4px', background: 'rgba(239, 68, 68, 0.9)', border: 'none', borderRadius: '50%', width: '18px', height: '18px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', cursor: 'pointer', padding: 0 }}
+                                    >
+                                      <X size={10} />
+                                    </button>
                                   </div>
                                 ))}
                               </div>
+                            )}
+                          </div>
+
+                          {/* Doctor's Digital Prescription & Notes */}
+                          {(selectedBill?.prescriptionText || payPatientDoc?.prescriptionText || (selectedBill?.medicines && selectedBill?.medicines.length > 0) || (payPatientDoc?.medicines && payPatientDoc?.medicines.length > 0) || selectedBill?.medicalHistory || payPatientDoc?.medicalHistory) && (
+                            <div className="glass-panel" style={{ padding: '16px', background: 'rgba(255,255,255,0.02)', marginTop: '16px' }}>
+                              <h4 style={{ margin: '0 0 12px 0', fontSize: '14px', color: 'var(--primary-color)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <Clipboard size={16} /> Doctor's Consultation Notes
+                              </h4>
+
+                              {(selectedBill?.medicalHistory || payPatientDoc?.medicalHistory) && (
+                                <div style={{ marginBottom: '12px', fontSize: '13px', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '10px' }}>
+                                  <strong style={{ color: 'var(--text-muted)' }}>Medical History:</strong>
+                                  <p style={{ margin: '4px 0 0 0', color: 'var(--text-main)', whiteSpace: 'pre-wrap' }}>{selectedBill?.medicalHistory || payPatientDoc?.medicalHistory}</p>
+                                </div>
+                              )}
+
+                              {(selectedBill?.prescriptionText || payPatientDoc?.prescriptionText) && (
+                                <div style={{ marginBottom: '12px', fontSize: '13px' }}>
+                                  <strong style={{ color: 'var(--text-muted)' }}>Diagnosis & Notes:</strong>
+                                  <p style={{ margin: '4px 0 0 0', color: 'var(--text-main)', whiteSpace: 'pre-wrap' }}>{selectedBill?.prescriptionText || payPatientDoc?.prescriptionText}</p>
+                                </div>
+                              )}
+
+                              {((selectedBill?.medicines && selectedBill.medicines.length > 0) || (payPatientDoc?.medicines && payPatientDoc.medicines.length > 0)) && (
+                                <div style={{ fontSize: '13px' }}>
+                                  <strong style={{ color: 'var(--text-muted)' }}>Prescribed Medicines:</strong>
+                                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginTop: '6px' }}>
+                                    {(selectedBill?.medicines || payPatientDoc?.medicines).map((med, idx) => (
+                                      <div key={idx} style={{ background: 'rgba(255,255,255,0.05)', padding: '8px', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.1)' }}>
+                                        <div style={{ fontWeight: 'bold', color: 'var(--text-main)' }}>{med.name} <span style={{ fontWeight: 'normal', fontSize: '11px', color: 'var(--text-muted)' }}>({med.type})</span></div>
+                                        <div style={{ color: 'var(--text-muted)', fontSize: '12px', marginTop: '2px' }}>Dosage: {med.timing} | Duration: {med.duration}</div>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
                             </div>
                           )}
-                        </div>
+
+                        </>
                       )}
 
                       {/* Diet Plans (Read-Only) Card */}
@@ -9652,381 +9677,86 @@ For queries, contact support at 9030 176 176 or visit www.spiritualhomeo.com`;
                         )}
                       </div>
 
-                      {/* Clinical History Card */}
-                      <div className="glass-panel" style={{ padding: '16px', background: 'rgba(255,255,255,0.02)' }}>
-                        <h4 style={{ margin: '0 0 12px 0', fontSize: '14px', color: 'var(--primary-color)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <Clock size={16} /> Clinical & Visit History
-                        </h4>
-                        {payHistory.length === 0 ? (
-                          <p style={{ margin: 0, fontSize: '12px', color: 'var(--text-muted)', fontStyle: 'italic' }}>No completed past visits found.</p>
-                        ) : (
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                            {payHistory.map((visit) => (
-                              <div key={visit.id} style={{ border: '1px solid var(--border-color)', borderRadius: '8px', padding: '10px', fontSize: '12px', background: 'rgba(255,255,255,0.01)' }}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 'bold', marginBottom: '4px' }}>
-                                  <span>{visit.appointmentDate || visit.dateString || 'N/A'}</span>
-                                  <span style={{ color: 'var(--text-muted)' }}>{visit.doctor || 'Doctor'}</span>
-                                </div>
-                                <div>Complaint: <span style={{ color: 'var(--text-main)' }}>{visit.complaint || 'N/A'}</span></div>
-                                {visit.notes && <div style={{ color: 'var(--text-muted)', marginTop: '4px', fontStyle: 'italic' }}>Notes: {visit.notes}</div>}
+                      {!(isPaid && !isUnlocked) && (
+                        <>
+                          {/* Clinical History Card */}
+                          <div className="glass-panel" style={{ padding: '16px', background: 'rgba(255,255,255,0.02)' }}>
+                            <h4 style={{ margin: '0 0 12px 0', fontSize: '14px', color: 'var(--primary-color)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                              <Clock size={16} /> Clinical & Visit History
+                            </h4>
+                            {payHistory.length === 0 ? (
+                              <p style={{ margin: 0, fontSize: '12px', color: 'var(--text-muted)', fontStyle: 'italic' }}>No completed past visits found.</p>
+                            ) : (
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                                {payHistory.map((visit) => (
+                                  <div key={visit.id} style={{ border: '1px solid var(--border-color)', borderRadius: '8px', padding: '10px', fontSize: '12px', background: 'rgba(255,255,255,0.01)' }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 'bold', marginBottom: '4px' }}>
+                                      <span>{visit.appointmentDate || visit.dateString || 'N/A'}</span>
+                                      <span style={{ color: 'var(--text-muted)' }}>{visit.doctor || 'Doctor'}</span>
+                                    </div>
+                                    <div>Complaint: <span style={{ color: 'var(--text-main)' }}>{visit.complaint || 'N/A'}</span></div>
+                                    {visit.notes && <div style={{ color: 'var(--text-muted)', marginTop: '4px', fontStyle: 'italic' }}>Notes: {visit.notes}</div>}
+                                  </div>
+                                ))}
                               </div>
-                            ))}
+                            )}
                           </div>
-                        )}
-                      </div>
+                        </>
+                      )}
                     </>
                   )}
                 </div>
 
                 {/* RIGHT COLUMN: Billing & Payment Processing */}
                 <div style={{ flex: '0.8', display: 'flex', flexDirection: 'column', gap: '16px', overflowY: 'auto', paddingLeft: '8px', borderLeft: '1px solid var(--border-color)' }}>
-                  <div style={{ background: 'rgba(255,255,255,0.05)', padding: '16px', borderRadius: '8px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                    <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>Billing Summary</div>
 
-                    {/* Consultation Toggle */}
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                      <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '13px', margin: 0 }}>
-                        <input
-                          type="checkbox"
-                          checked={includeConsultation}
-                          disabled={showBlockMessage || selectedBill.amountLocked}
-                          onChange={(e) => {
-                            if (e.target.checked) {
-                              setIncludeConsultation(true);
-                              setIncludeMedicine(false);
-                              if (consultationFee === 0 || consultationFee === '') {
-                                setConsultationFee('');
-                              }
-                              setMedicineFee(0);
-                            } else {
-                              setIncludeConsultation(false);
-                            }
-                          }}
-                        />
-                        Consultation
-                      </label>
-                      {includeConsultation && (
-                        <input
-                          type="number"
-                          className="glass-input"
-                          style={{ width: '80px', padding: '4px 8px', fontSize: '12px', margin: 0, textAlign: 'right' }}
-                          value={consultationFee}
-                          disabled={showBlockMessage || selectedBill.amountLocked}
-                          onChange={(e) => setConsultationFee(e.target.value === '' ? '' : Number(e.target.value))}
-                        />
-                      )}
-                    </div>
-
-                    {/* Consultation & Medicine Fee Toggle */}
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                      <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '13px', margin: 0 }}>
-                        <input
-                          type="checkbox"
-                          checked={includeMedicine}
-                          disabled={showBlockMessage || selectedBill.amountLocked}
-                          onChange={(e) => {
-                            if (e.target.checked) {
-                              setIncludeMedicine(true);
-                              setIncludeConsultation(false);
-                              if (medicineFee === 0 || medicineFee === '') {
-                                const medAmt = selectedBill ? (Number(selectedBill.medicineFeeRequested) || Number(selectedBill.consultationFee) || 0) : 0;
-                                setMedicineFee(medAmt || '');
-                              }
-                              setConsultationFee(0);
-                            } else {
-                              setIncludeMedicine(false);
-                            }
-                          }}
-                        />
-                        Consultation &amp; Medicine Fee
-                      </label>
-                      {includeMedicine && (
-                        <input
-                          type="number"
-                          className="glass-input"
-                          style={{ width: '80px', padding: '4px 8px', fontSize: '12px', margin: 0, textAlign: 'right' }}
-                          value={medicineFee}
-                          disabled={showBlockMessage || selectedBill.amountLocked}
-                          onChange={(e) => setMedicineFee(e.target.value === '' ? '' : Number(e.target.value))}
-                        />
-                      )}
-                    </div>
-
-                    {/* Diet Plan Fee Toggle */}
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                      <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '13px', color: '#10b981', margin: 0 }}>
-                        <input type="checkbox" checked={includeDiet} disabled={showBlockMessage || selectedBill.amountLocked} onChange={(e) => setIncludeDiet(e.target.checked)} />
-                        Diet Plan Fee
-                      </label>
-                      {includeDiet && (
-                        <input
-                          type="number"
-                          className="glass-input"
-                          style={{ width: '80px', padding: '4px 8px', fontSize: '12px', margin: 0, textAlign: 'right' }}
-                          value={dietFee}
-                          disabled={showBlockMessage || selectedBill.amountLocked}
-                          onChange={(e) => setDietFee(e.target.value === '' ? '' : Number(e.target.value))}
-                        />
-                      )}
-                    </div>
-
-                    {/* Itemized Medicines Row */}
-                    <div style={{ marginTop: '12px', padding: '12px', backgroundColor: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0', marginBottom: '12px' }}>
-                      <div style={{ fontSize: '14px', fontWeight: '700', color: 'var(--text-main)', marginBottom: '8px' }}>Medicines Details</div>
-
-                      <div style={{ marginBottom: '12px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                        <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Duration for all:</span>
-                        <select
-                          className="glass-input"
-                          style={{ width: '100%', padding: '10px 14px' }}
-                          value={counterPrescriptionDuration}
-                          disabled={showBlockMessage || selectedBill?.amountLocked}
-                          onChange={(e) => setCounterPrescriptionDuration(e.target.value)}
-                        >
-                          <option value="" disabled>Select Duration</option>
-                          {["15 Days", "1 Month", "2 Months", "3 Months", "4 Months", "5 Months", "6 Months", "1 Year"].map(opt => (
-                            <option key={opt} value={opt}>{opt}</option>
-                          ))}
-                        </select>
+                  {(isPaid && !isUnlocked) ? (
+                    <div style={{ background: 'rgba(255,255,255,0.02)', padding: '16px', borderRadius: '8px', border: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#10b981', fontWeight: 'bold', fontSize: '16px', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '12px' }}>
+                        <CheckCircle size={20} /> Payment Completed
                       </div>
 
-                      {counterMedicines.map((med, index) => (
-                        <div key={index} style={{ backgroundColor: '#ffffff', padding: '8px', borderRadius: '6px', marginBottom: '8px', border: '1px solid #cbd5e1', display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                          <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
-                            <input
-                              type="text"
-                              className="glass-input"
-                              placeholder="Medicine Name"
-                              style={{ flex: 1, fontSize: '12px', padding: '6px', margin: 0 }}
-                              value={med.name}
-                              disabled={showBlockMessage || selectedBill?.amountLocked}
-                              onChange={(e) => handleCounterMedicineChange(index, 'name', e.target.value)}
-                            />
-                            <input
-                              type="number"
-                              className="glass-input"
-                              placeholder="Price (?)"
-                              style={{ width: '80px', fontSize: '12px', padding: '6px', margin: 0, textAlign: 'right' }}
-                              value={med.price || ''}
-                              disabled={showBlockMessage || selectedBill?.amountLocked}
-                              onChange={(e) => handleCounterMedicineChange(index, 'price', e.target.value)}
-                            />
-                            {!(showBlockMessage || selectedBill?.amountLocked) && (
-                              <button
-                                type="button"
-                                style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', padding: '4px' }}
-                                onClick={() => handleRemoveCounterMedicineRow(index)}
-                              >
-                                ✕
-                              </button>
-                            )}
-                          </div>
-                          <div style={{ display: 'flex', gap: '6px' }}>
-                            <select
-                              className="glass-input"
-                              style={{ flex: 1, fontSize: '12px', padding: '6px', margin: 0 }}
-                              value={med.type}
-                              disabled={showBlockMessage || selectedBill?.amountLocked}
-                              onChange={(e) => handleCounterMedicineChange(index, 'type', e.target.value)}
-                            >
-                              {["Tablet", "Drops", "Syrup", "Ointment", "Powder", "Injection"].map(opt => (
-                                <option key={opt} value={opt}>{opt}</option>
-                              ))}
-                            </select>
-                            <select
-                              className="glass-input"
-                              style={{ flex: 1.5, fontSize: '12px', padding: '6px', margin: 0 }}
-                              value={med.dosage}
-                              disabled={showBlockMessage || selectedBill?.amountLocked}
-                              onChange={(e) => handleCounterMedicineChange(index, 'dosage', e.target.value)}
-                            >
-                              {["1-0-0 (Morning)", "0-0-1 (Night)", "1-0-1 (Morning, Night)", "1-1-1 (Morning, Afternoon, Night)", "0-1-0 (Afternoon)", "1-1-0 (Morning, Afternoon)", "0-1-1 (Afternoon, Night)", "When Required (SOS)"].map(opt => (
-                                <option key={opt} value={opt}>{opt}</option>
-                              ))}
-                            </select>
-                          </div>
+                      <div style={{ fontSize: '14px', color: 'var(--text-main)', fontWeight: '600' }}>Payment Breakdown</div>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '13px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-muted)' }}>
+                          <span>Consultation Fee:</span>
+                          <span style={{ color: 'var(--text-main)' }}>₹{Number(selectedBill?.itemsPaid?.consultation || selectedBill?.consultationFee || 0)}</span>
                         </div>
-                      ))}
-
-                      {!(showBlockMessage || selectedBill?.amountLocked) && (
-                        <button
-                          type="button"
-                          style={{ background: 'none', border: 'none', color: 'var(--secondary-color)', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer', padding: '4px 0', textAlign: 'left' }}
-                          onClick={handleAddCounterMedicineRow}
-                        >
-                          + Add Row
-                        </button>
-                      )}
-                    </div>
-
-                    {/* Previous Pending Amount Display */}
-                    {(Number(selectedBill?.pendingAmount) > 0) && (
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                        <span style={{ fontSize: '13px', color: '#ef4444', fontWeight: '700' }}>Previous Pending Amount</span>
-                        <span style={{ fontSize: '14px', color: '#ef4444', fontWeight: '800' }}>+ ₹{selectedBill.pendingAmount}</span>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-muted)' }}>
+                          <span>Medicine Fee:</span>
+                          <span style={{ color: 'var(--text-main)' }}>₹{Number(selectedBill?.itemsPaid?.medicine || selectedBill?.medicineFeeRequested || 0)}</span>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-muted)' }}>
+                          <span>Diet Plan Fee:</span>
+                          <span style={{ color: 'var(--text-main)' }}>₹{Number(selectedBill?.itemsPaid?.dietPlan || 0)}</span>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 'bold', fontSize: '15px', color: 'var(--text-main)', marginTop: '8px', borderTop: '1px dashed rgba(255,255,255,0.1)', paddingTop: '10px' }}>
+                          <span>Total Paid:</span>
+                          <span>₹{Number(selectedBill?.itemsPaid?.consultation || selectedBill?.consultationFee || 0) + Number(selectedBill?.itemsPaid?.medicine || selectedBill?.medicineFeeRequested || 0) + Number(selectedBill?.itemsPaid?.dietPlan || 0)}</span>
+                        </div>
                       </div>
-                    )}
 
-                    {/* Pay Later Amount */}
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                      <label style={{ fontSize: '13px', color: '#8b5cf6', fontWeight: '700', margin: 0 }}>Pay Later Amount (Pending)</label>
-                      <input
-                        type="number"
-                        className="glass-input"
-                        style={{ width: '80px', padding: '4px 8px', fontSize: '12px', margin: 0, textAlign: 'right' }}
-                        value={payLaterAmount}
-                        disabled={showBlockMessage || selectedBill?.amountLocked}
-                        onChange={(e) => setPayLaterAmount(e.target.value)}
-                      />
-                    </div>
-
-                    <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <span style={{ fontSize: '14px', fontWeight: 'bold' }}>Total Checkout (₹):</span>
-                      <span style={{ fontSize: '20px', fontWeight: '800', color: 'var(--primary-color)' }}>₹{customFeeAmount}</span>
-                    </div>
-
-                    {!selectedBill.amountLocked ? (
-                      <button
-                        type="button"
-                        onClick={handleLockGeneralAmount}
-                        className="btn-secondary"
-                        style={{ width: '100%', marginTop: '8px', padding: '8px', fontSize: '12px', background: 'rgba(245, 158, 11, 0.08)', border: '1px solid #d97706', color: '#d97706', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', margin: 0 }}
-                      >
-                        🔒 Lock Billing Amount
-                      </button>
-                    ) : (
-                      <div style={{ marginTop: '12px', borderTop: '1px solid var(--border-color)', paddingTop: '12px' }}>
-                        <div style={{ fontSize: '12px', color: '#10b981', fontWeight: '700', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                          <span>🔒 Billing amount is locked.</span>
-                        </div>
-                        {pendingAmountRequest ? (
-                          <div style={{ background: 'rgba(245, 158, 11, 0.08)', border: '1px solid rgba(245, 158, 11, 0.2)', borderRadius: '8px', padding: '12px', color: '#fbbf24', fontSize: '12px' }}>
-                            <div style={{ fontWeight: 'bold', marginBottom: '4px' }}>⏳ HR Amount Change Request Pending</div>
-                            <div>Proposed Amount: <strong>₹{pendingAmountRequest.proposedAmount}</strong></div>
-                            <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px' }}>Reason: {pendingAmountRequest.reason}</div>
-                          </div>
-                        ) : (
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                            <div style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-muted)' }}>Request HR Change:</div>
-                            <input
-                              type="number"
-                              className="glass-input"
-                              placeholder="Proposed Amount (₹)"
-                              value={proposedNewAmount}
-                              onChange={e => setProposedNewAmount(e.target.value)}
-                              style={{ margin: 0, fontSize: '12px', padding: '6px 10px' }}
-                            />
-                            <textarea
-                              className="glass-input"
-                              placeholder="Reason for change"
-                              value={amountRequestReason}
-                              onChange={e => setAmountRequestReason(e.target.value)}
-                              style={{ margin: 0, fontSize: '12px', padding: '6px 10px', minHeight: '40px' }}
-                            />
-                            <button
-                              type="button"
-                              className="btn-secondary"
-                              onClick={handleSubmitAmountChangeRequest}
-                              disabled={isSubmittingAmountRequest}
-                              style={{ margin: 0, padding: '6px 12px', fontSize: '12px' }}
-                            >
-                              {isSubmittingAmountRequest ? 'Sending...' : '📩 Request Change to HR'}
-                            </button>
+                      <div style={{ marginTop: '16px', fontSize: '12px', color: 'var(--text-muted)' }}>
+                        <div>Payment Method: <span style={{ color: 'var(--text-main)', fontWeight: 'bold', textTransform: 'uppercase' }}>{selectedBill?.paymentMethod || 'N/A'}</span></div>
+                        {selectedBill?.paymentMethod === 'split' && selectedBill?.paymentSplitDetails && (
+                          <div style={{ marginTop: '6px', paddingLeft: '8px', borderLeft: '2px solid rgba(255,255,255,0.1)' }}>
+                            {Object.entries(selectedBill.paymentSplitDetails).map(([method, amt]) => Number(amt) > 0 && (
+                              <div key={method}>- {method.toUpperCase()}: ₹{amt}</div>
+                            ))}
                           </div>
                         )}
                       </div>
-                    )}
-                  </div>
 
-                  <form onSubmit={handleCollectPayment}>
-                    <div style={{ marginBottom: '16px' }}>
-                      <div style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--text-muted)', marginBottom: '8px', textTransform: 'uppercase' }}>
-                        Payment Breakdown
-                      </div>
-                      {paymentLegs.map((leg, index) => (
-                        <div key={index} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr auto', gap: '10px', alignItems: 'end', marginBottom: '12px' }}>
-                          <div className="form-group" style={{ marginBottom: 0 }}>
-                            <label className="form-label" style={{ fontSize: '11px' }}>Method</label>
-                            <select
-                              className="glass-input"
-                              value={leg.method}
-                              disabled={showBlockMessage}
-                              onChange={e => {
-                                stopQrPolling();
-                                handleLegChange(index, 'method', e.target.value);
-                              }}
-                            >
-                              <option value="cash" disabled={paymentLegs.some((l, i) => i !== index && l.method === 'cash')}>Cash</option>
-                              <option value="card" disabled={paymentLegs.some((l, i) => i !== index && l.method === 'card')}>Card</option>
-                              <option value="upi" disabled={paymentLegs.some((l, i) => i !== index && l.method === 'upi')}>Counter UPI</option>
-                              {selectedBill.source === 'appointments' && (
-                                <option value="app" disabled={paymentLegs.some((l, i) => i !== index && l.method === 'app')}>Send to Patient App</option>
-                              )}
-                            </select>
-                          </div>
-                          <div className="form-group" style={{ marginBottom: 0 }}>
-                            <label className="form-label" style={{ fontSize: '11px' }}>Amount (₹)</label>
-                            <input
-                              type="number"
-                              required
-                              className="glass-input"
-                              value={leg.amount}
-                              disabled={showBlockMessage}
-                              onChange={e => handleLegChange(index, 'amount', e.target.value)}
-                            />
-                          </div>
-                          {index > 0 && (
-                            <button
-                              type="button"
-                              onClick={() => handleRemoveLeg(index)}
-                              disabled={showBlockMessage}
-                              style={{ padding: '10px', background: 'transparent', border: 'none', color: '#ef4444', cursor: showBlockMessage ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                              title="Remove split"
-                            >
-                              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18" /><path d="m6 6 12 12" /></svg>
-                            </button>
-                          )}
-                        </div>
-                      ))}
-
-                      {!showBlockMessage && paymentLegs.length < 4 && (
-                        <button
-                          type="button"
-                          onClick={handleAddPaymentLeg}
-                          style={{
-                            background: 'rgba(41, 143, 202, 0.1)',
-                            border: '1px dashed var(--primary-color)',
-                            color: 'var(--primary-color)',
-                            padding: '8px 12px',
-                            borderRadius: '8px',
-                            fontSize: '12px',
-                            fontWeight: '600',
-                            cursor: 'pointer',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '6px',
-                            width: '100%',
-                            justifyContent: 'center',
-                            marginTop: '8px'
-                          }}
-                        >
-                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14" /><path d="M5 12h14" /></svg>
-                          Add Split Row
+                      <div style={{ marginTop: '16px', display: 'flex', gap: '10px' }}>
+                        <button type="button" className="btn-primary" onClick={() => generatePaymentInvoice(selectedBill)} style={{ flex: 1, padding: '10px', fontSize: '13px' }}>
+                          <Printer size={16} style={{ marginRight: '6px' }} /> Print Receipt
                         </button>
-                      )}
+                        <button type="button" className="btn-secondary" onClick={() => handleShareWhatsApp(selectedBill)} style={{ flex: 1, padding: '10px', fontSize: '13px' }}>
+                          <MessageCircle size={16} style={{ marginRight: '6px' }} /> WhatsApp
+                        </button>
+                      </div>
 
-                      {paymentLegs.reduce((sum, leg) => sum + Number(leg.amount || 0), 0) !== Number(customFeeAmount) && !showBlockMessage && (
-                        <div style={{ fontSize: '11px', color: '#f59e0b', marginTop: '8px', textAlign: 'right', fontWeight: '600' }}>
-                          Remaining: ₹{(Number(customFeeAmount) - paymentLegs.reduce((sum, leg) => sum + Number(leg.amount || 0), 0)).toFixed(2)}
-                        </div>
-                      )}
-                    </div>
-
-                    {showBlockMessage ? (
-                      <div style={{ marginTop: '20px', padding: '16px', background: 'rgba(239, 68, 68, 0.08)', border: '1px solid rgba(239, 68, 68, 0.2)', borderRadius: '12px', display: 'flex', flexDirection: 'column', gap: '12px', alignItems: 'center' }}>
-                        <div style={{ fontSize: '13px', color: '#f87171', fontWeight: '700', textAlign: 'center' }}>
-                          ⚠️ Checkout Restricted: Payment already completed for this visit.
-                        </div>
+                      <div style={{ marginTop: '24px', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '16px' }}>
                         {unlockRequest?.status === 'pending' ? (
                           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#fbbf24', fontSize: '12px', fontWeight: '600' }}>
                             <RefreshCw className="spin" size={14} /> Request pending HR approval...
@@ -10034,108 +9764,479 @@ For queries, contact support at 9030 176 176 or visit www.spiritualhomeo.com`;
                         ) : (
                           <>
                             {unlockRequest?.status === 'rejected' && (
-                              <div style={{ fontSize: '11px', color: '#f87171', fontStyle: 'italic', textAlign: 'center' }}>
+                              <div style={{ fontSize: '11px', color: '#f87171', fontStyle: 'italic', textAlign: 'center', marginBottom: '8px' }}>
                                 Previous unlock request was rejected by HR.
                               </div>
                             )}
                             <button
                               type="button"
-                              className="btn-primary"
+                              className="btn-secondary"
                               disabled={requestingUnlock}
                               onClick={handleRequestUnlock}
-                              style={{ width: '100%', padding: '10px 16px', fontSize: '13px', background: 'var(--primary-color)', borderColor: 'var(--primary-color)' }}
+                              style={{ width: '100%', padding: '10px', fontSize: '12px', background: 'transparent' }}
                             >
-                              {requestingUnlock ? 'Sending Request...' : '🔑 Request HR Unlock Approval'}
+                              {requestingUnlock ? 'Sending Request...' : '🔑 Request HR Unlock Approval to Edit'}
                             </button>
                           </>
                         )}
                       </div>
-                    ) : (
-                      <>
-                        {isPaid && isUnlocked && (
-                          <div style={{ marginTop: '12px', marginBottom: '12px', padding: '8px 12px', background: 'rgba(16, 185, 129, 0.1)', border: '1px solid rgba(16, 185, 129, 0.2)', borderRadius: '8px', color: '#34d399', fontSize: '12px', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                            ✓ HR Approved: Additional checkout unlocked.
+                    </div>
+                  ) : (
+                    <>
+                      <div style={{ background: 'rgba(255,255,255,0.05)', padding: '16px', borderRadius: '8px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                        <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>Billing Summary</div>
+
+                        {/* Consultation Toggle */}
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                          <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '13px', margin: 0 }}>
+                            <input
+                              type="checkbox"
+                              checked={includeConsultation}
+                              disabled={showBlockMessage || selectedBill.amountLocked}
+                              onChange={(e) => {
+                                if (e.target.checked) {
+                                  setIncludeConsultation(true);
+                                  setIncludeMedicine(false);
+                                  if (consultationFee === 0 || consultationFee === '') {
+                                    setConsultationFee('');
+                                  }
+                                  setMedicineFee(0);
+                                } else {
+                                  setIncludeConsultation(false);
+                                }
+                              }}
+                            />
+                            Consultation
+                          </label>
+                          {includeConsultation && (
+                            <input
+                              type="number"
+                              className="glass-input"
+                              style={{ width: '80px', padding: '4px 8px', fontSize: '12px', margin: 0, textAlign: 'right' }}
+                              value={consultationFee}
+                              disabled={showBlockMessage || selectedBill.amountLocked}
+                              onChange={(e) => setConsultationFee(e.target.value === '' ? '' : Number(e.target.value))}
+                            />
+                          )}
+                        </div>
+
+                        {/* Consultation & Medicine Fee Toggle */}
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                          <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '13px', margin: 0 }}>
+                            <input
+                              type="checkbox"
+                              checked={includeMedicine}
+                              disabled={showBlockMessage || selectedBill.amountLocked}
+                              onChange={(e) => {
+                                if (e.target.checked) {
+                                  setIncludeMedicine(true);
+                                  setIncludeConsultation(false);
+                                  if (medicineFee === 0 || medicineFee === '') {
+                                    const medAmt = selectedBill ? (Number(selectedBill.medicineFeeRequested) || Number(selectedBill.consultationFee) || 0) : 0;
+                                    setMedicineFee(medAmt || '');
+                                  }
+                                  setConsultationFee(0);
+                                } else {
+                                  setIncludeMedicine(false);
+                                }
+                              }}
+                            />
+                            Consultation &amp; Medicine Fee
+                          </label>
+                          {includeMedicine && (
+                            <input
+                              type="number"
+                              className="glass-input"
+                              style={{ width: '80px', padding: '4px 8px', fontSize: '12px', margin: 0, textAlign: 'right' }}
+                              value={medicineFee}
+                              disabled={showBlockMessage || selectedBill.amountLocked}
+                              onChange={(e) => setMedicineFee(e.target.value === '' ? '' : Number(e.target.value))}
+                            />
+                          )}
+                        </div>
+
+                        {/* Diet Plan Fee Toggle */}
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                          <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '13px', color: '#10b981', margin: 0 }}>
+                            <input type="checkbox" checked={includeDiet} disabled={showBlockMessage || selectedBill.amountLocked} onChange={(e) => setIncludeDiet(e.target.checked)} />
+                            Diet Plan Fee
+                          </label>
+                          {includeDiet && (
+                            <input
+                              type="number"
+                              className="glass-input"
+                              style={{ width: '80px', padding: '4px 8px', fontSize: '12px', margin: 0, textAlign: 'right' }}
+                              value={dietFee}
+                              disabled={showBlockMessage || selectedBill.amountLocked}
+                              onChange={(e) => setDietFee(e.target.value === '' ? '' : Number(e.target.value))}
+                            />
+                          )}
+                        </div>
+
+                        {/* Itemized Medicines Row */}
+                        <div style={{ marginTop: '12px', padding: '12px', backgroundColor: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0', marginBottom: '12px' }}>
+                          <div style={{ fontSize: '14px', fontWeight: '700', color: 'var(--text-main)', marginBottom: '8px' }}>Medicines Details</div>
+
+                          <div style={{ marginBottom: '12px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                            <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Duration for all:</span>
+                            <select
+                              className="glass-input"
+                              style={{ width: '100%', padding: '10px 14px' }}
+                              value={counterPrescriptionDuration}
+                              disabled={showBlockMessage || selectedBill?.amountLocked}
+                              onChange={(e) => setCounterPrescriptionDuration(e.target.value)}
+                            >
+                              <option value="" disabled>Select Duration</option>
+                              {["15 Days", "1 Month", "2 Months", "3 Months", "4 Months", "5 Months", "6 Months", "1 Year"].map(opt => (
+                                <option key={opt} value={opt}>{opt}</option>
+                              ))}
+                            </select>
+                          </div>
+
+                          {counterMedicines.map((med, index) => (
+                            <div key={index} style={{ backgroundColor: '#ffffff', padding: '8px', borderRadius: '6px', marginBottom: '8px', border: '1px solid #cbd5e1', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                              <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                                <input
+                                  type="text"
+                                  className="glass-input"
+                                  placeholder="Medicine Name"
+                                  style={{ flex: 1, fontSize: '12px', padding: '6px', margin: 0 }}
+                                  value={med.name}
+                                  disabled={showBlockMessage || selectedBill?.amountLocked}
+                                  onChange={(e) => handleCounterMedicineChange(index, 'name', e.target.value)}
+                                />
+                                <input
+                                  type="number"
+                                  className="glass-input"
+                                  placeholder="Price (?)"
+                                  style={{ width: '80px', fontSize: '12px', padding: '6px', margin: 0, textAlign: 'right' }}
+                                  value={med.price || ''}
+                                  disabled={showBlockMessage || selectedBill?.amountLocked}
+                                  onChange={(e) => handleCounterMedicineChange(index, 'price', e.target.value)}
+                                />
+                                {!(showBlockMessage || selectedBill?.amountLocked) && (
+                                  <button
+                                    type="button"
+                                    style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', padding: '4px' }}
+                                    onClick={() => handleRemoveCounterMedicineRow(index)}
+                                  >
+                                    ✕
+                                  </button>
+                                )}
+                              </div>
+                              <div style={{ display: 'flex', gap: '6px' }}>
+                                <select
+                                  className="glass-input"
+                                  style={{ flex: 1, fontSize: '12px', padding: '6px', margin: 0 }}
+                                  value={med.type}
+                                  disabled={showBlockMessage || selectedBill?.amountLocked}
+                                  onChange={(e) => handleCounterMedicineChange(index, 'type', e.target.value)}
+                                >
+                                  {["Tablet", "Drops", "Syrup", "Ointment", "Powder", "Injection"].map(opt => (
+                                    <option key={opt} value={opt}>{opt}</option>
+                                  ))}
+                                </select>
+                                <select
+                                  className="glass-input"
+                                  style={{ flex: 1.5, fontSize: '12px', padding: '6px', margin: 0 }}
+                                  value={med.dosage}
+                                  disabled={showBlockMessage || selectedBill?.amountLocked}
+                                  onChange={(e) => handleCounterMedicineChange(index, 'dosage', e.target.value)}
+                                >
+                                  {["1-0-0 (Morning)", "0-0-1 (Night)", "1-0-1 (Morning, Night)", "1-1-1 (Morning, Afternoon, Night)", "0-1-0 (Afternoon)", "1-1-0 (Morning, Afternoon)", "0-1-1 (Afternoon, Night)", "When Required (SOS)"].map(opt => (
+                                    <option key={opt} value={opt}>{opt}</option>
+                                  ))}
+                                </select>
+                              </div>
+                            </div>
+                          ))}
+
+                          {!(showBlockMessage || selectedBill?.amountLocked) && (
+                            <button
+                              type="button"
+                              style={{ background: 'none', border: 'none', color: 'var(--secondary-color)', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer', padding: '4px 0', textAlign: 'left' }}
+                              onClick={handleAddCounterMedicineRow}
+                            >
+                              + Add Row
+                            </button>
+                          )}
+                        </div>
+
+                        {/* Previous Pending Amount Display */}
+                        {(Number(selectedBill?.pendingAmount) > 0) && (
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                            <span style={{ fontSize: '13px', color: '#ef4444', fontWeight: '700' }}>Previous Pending Amount</span>
+                            <span style={{ fontSize: '14px', color: '#ef4444', fontWeight: '800' }}>+ ₹{selectedBill.pendingAmount}</span>
                           </div>
                         )}
 
-                        {paymentLegs.length === 1 && paymentLegs[0].method === 'razorpay_qr' && (
-                          <div style={{ marginTop: '16px', textAlign: 'center', background: 'rgba(255,255,255,0.05)', padding: '16px', borderRadius: '12px' }}>
-                            {!razorpayQrCode ? (
-                              <button
-                                type="button"
-                                onClick={generateRazorpayQR}
-                                className="btn-primary"
-                                disabled={loadingQr || !!pendingAmountRequest}
-                                style={{ width: '100%', padding: '10px', fontSize: '13px' }}
-                              >
-                                {loadingQr ? 'Generating QR Code...' : '⚡ Generate UPI QR Code'}
-                              </button>
+                        {/* Pay Later Amount */}
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                          <label style={{ fontSize: '13px', color: '#8b5cf6', fontWeight: '700', margin: 0 }}>Pay Later Amount (Pending)</label>
+                          <input
+                            type="number"
+                            className="glass-input"
+                            style={{ width: '80px', padding: '4px 8px', fontSize: '12px', margin: 0, textAlign: 'right' }}
+                            value={payLaterAmount}
+                            disabled={showBlockMessage || selectedBill?.amountLocked}
+                            onChange={(e) => setPayLaterAmount(e.target.value)}
+                          />
+                        </div>
+
+                        <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <span style={{ fontSize: '14px', fontWeight: 'bold' }}>Total Checkout (₹):</span>
+                          <span style={{ fontSize: '20px', fontWeight: '800', color: 'var(--primary-color)' }}>₹{customFeeAmount}</span>
+                        </div>
+
+                        {!selectedBill.amountLocked ? (
+                          <button
+                            type="button"
+                            onClick={handleLockGeneralAmount}
+                            className="btn-secondary"
+                            style={{ width: '100%', marginTop: '8px', padding: '8px', fontSize: '12px', background: 'rgba(245, 158, 11, 0.08)', border: '1px solid #d97706', color: '#d97706', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', margin: 0 }}
+                          >
+                            🔒 Lock Billing Amount
+                          </button>
+                        ) : (
+                          <div style={{ marginTop: '12px', borderTop: '1px solid var(--border-color)', paddingTop: '12px' }}>
+                            <div style={{ fontSize: '12px', color: '#10b981', fontWeight: '700', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                              <span>🔒 Billing amount is locked.</span>
+                            </div>
+                            {pendingAmountRequest ? (
+                              <div style={{ background: 'rgba(245, 158, 11, 0.08)', border: '1px solid rgba(245, 158, 11, 0.2)', borderRadius: '8px', padding: '12px', color: '#fbbf24', fontSize: '12px' }}>
+                                <div style={{ fontWeight: 'bold', marginBottom: '4px' }}>⏳ HR Amount Change Request Pending</div>
+                                <div>Proposed Amount: <strong>₹{pendingAmountRequest.proposedAmount}</strong></div>
+                                <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px' }}>Reason: {pendingAmountRequest.reason}</div>
+                              </div>
                             ) : (
-                              <div>
-                                <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '8px' }}>Scan the QR code below to pay</p>
-                                <img
-                                  src={razorpayQrCode.image_url}
-                                  alt="UPI QR Code"
-                                  style={{ width: '180px', height: '180px', margin: '8px auto', display: 'block', borderRadius: '8px', border: '5px solid #fff' }}
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                <div style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-muted)' }}>Request HR Change:</div>
+                                <input
+                                  type="number"
+                                  className="glass-input"
+                                  placeholder="Proposed Amount (₹)"
+                                  value={proposedNewAmount}
+                                  onChange={e => setProposedNewAmount(e.target.value)}
+                                  style={{ margin: 0, fontSize: '12px', padding: '6px 10px' }}
                                 />
-                                <p style={{ fontSize: '11px', color: '#60a5fa', margin: '8px 0' }}>
-                                  ⏳ Waiting for payment confirmation...
-                                </p>
+                                <textarea
+                                  className="glass-input"
+                                  placeholder="Reason for change"
+                                  value={amountRequestReason}
+                                  onChange={e => setAmountRequestReason(e.target.value)}
+                                  style={{ margin: 0, fontSize: '12px', padding: '6px 10px', minHeight: '40px' }}
+                                />
                                 <button
                                   type="button"
-                                  onClick={stopQrPolling}
                                   className="btn-secondary"
-                                  style={{ width: '100%', marginTop: '8px', fontSize: '12px', borderColor: 'var(--danger)', color: 'var(--danger)' }}
+                                  onClick={handleSubmitAmountChangeRequest}
+                                  disabled={isSubmittingAmountRequest}
+                                  style={{ margin: 0, padding: '6px 12px', fontSize: '12px' }}
                                 >
-                                  Cancel QR Payment
+                                  {isSubmittingAmountRequest ? 'Sending...' : '📩 Request Change to HR'}
                                 </button>
                               </div>
                             )}
                           </div>
                         )}
+                      </div>
 
-                        {!(paymentLegs.length === 1 && paymentLegs[0].method === 'razorpay_qr') && (
-                          <button type="submit" className="btn-primary" disabled={processingRzp || !!pendingAmountRequest} style={{ width: '100%', marginTop: '20px' }}>
-                            {paymentLegs.some(l => l.method === 'razorpay_checkout')
-                              ? (processingRzp ? 'Opening Checkout...' : '⚡ Launch Razorpay Checkout')
-                              : paymentLegs.some(l => l.method === 'app')
-                                ? (paymentLegs.length > 1 ? '💰 Confirm Counter Collection + Send Balance to App' : '📱 Send Payment Request to Patient App')
-                                : '✅ Mark Bill as Paid'}
-                          </button>
+                      <form onSubmit={handleCollectPayment}>
+                        <div style={{ marginBottom: '16px' }}>
+                          <div style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--text-muted)', marginBottom: '8px', textTransform: 'uppercase' }}>
+                            Payment Breakdown
+                          </div>
+                          {paymentLegs.map((leg, index) => (
+                            <div key={index} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr auto', gap: '10px', alignItems: 'end', marginBottom: '12px' }}>
+                              <div className="form-group" style={{ marginBottom: 0 }}>
+                                <label className="form-label" style={{ fontSize: '11px' }}>Method</label>
+                                <select
+                                  className="glass-input"
+                                  value={leg.method}
+                                  disabled={showBlockMessage}
+                                  onChange={e => {
+                                    stopQrPolling();
+                                    handleLegChange(index, 'method', e.target.value);
+                                  }}
+                                >
+                                  <option value="cash" disabled={paymentLegs.some((l, i) => i !== index && l.method === 'cash')}>Cash</option>
+                                  <option value="card" disabled={paymentLegs.some((l, i) => i !== index && l.method === 'card')}>Card</option>
+                                  <option value="upi" disabled={paymentLegs.some((l, i) => i !== index && l.method === 'upi')}>Counter UPI</option>
+                                  {selectedBill.source === 'appointments' && (
+                                    <option value="app" disabled={paymentLegs.some((l, i) => i !== index && l.method === 'app')}>Send to Patient App</option>
+                                  )}
+                                </select>
+                              </div>
+                              <div className="form-group" style={{ marginBottom: 0 }}>
+                                <label className="form-label" style={{ fontSize: '11px' }}>Amount (₹)</label>
+                                <input
+                                  type="number"
+                                  required
+                                  className="glass-input"
+                                  value={leg.amount}
+                                  disabled={showBlockMessage}
+                                  onChange={e => handleLegChange(index, 'amount', e.target.value)}
+                                />
+                              </div>
+                              {index > 0 && (
+                                <button
+                                  type="button"
+                                  onClick={() => handleRemoveLeg(index)}
+                                  disabled={showBlockMessage}
+                                  style={{ padding: '10px', background: 'transparent', border: 'none', color: '#ef4444', cursor: showBlockMessage ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                                  title="Remove split"
+                                >
+                                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18" /><path d="m6 6 12 12" /></svg>
+                                </button>
+                              )}
+                            </div>
+                          ))}
+
+                          {!showBlockMessage && paymentLegs.length < 4 && (
+                            <button
+                              type="button"
+                              onClick={handleAddPaymentLeg}
+                              style={{
+                                background: 'rgba(41, 143, 202, 0.1)',
+                                border: '1px dashed var(--primary-color)',
+                                color: 'var(--primary-color)',
+                                padding: '8px 12px',
+                                borderRadius: '8px',
+                                fontSize: '12px',
+                                fontWeight: '600',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '6px',
+                                width: '100%',
+                                justifyContent: 'center',
+                                marginTop: '8px'
+                              }}
+                            >
+                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14" /><path d="M5 12h14" /></svg>
+                              Add Split Row
+                            </button>
+                          )}
+
+                          {paymentLegs.reduce((sum, leg) => sum + Number(leg.amount || 0), 0) !== Number(customFeeAmount) && !showBlockMessage && (
+                            <div style={{ fontSize: '11px', color: '#f59e0b', marginTop: '8px', textAlign: 'right', fontWeight: '600' }}>
+                              Remaining: ₹{(Number(customFeeAmount) - paymentLegs.reduce((sum, leg) => sum + Number(leg.amount || 0), 0)).toFixed(2)}
+                            </div>
+                          )}
+                        </div>
+
+                        {showBlockMessage && (
+                          <div style={{ marginTop: '20px', padding: '16px', background: 'rgba(239, 68, 68, 0.08)', border: '1px solid rgba(239, 68, 68, 0.2)', borderRadius: '12px', display: 'flex', flexDirection: 'column', gap: '12px', alignItems: 'center' }}>
+                            <div style={{ fontSize: '13px', color: '#f87171', fontWeight: '700', textAlign: 'center' }}>
+                              ⚠️ Checkout Restricted: Payment already completed for this visit.
+                            </div>
+                            {unlockRequest?.status === 'pending' ? (
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#fbbf24', fontSize: '12px', fontWeight: '600' }}>
+                                <RefreshCw className="spin" size={14} /> Request pending HR approval...
+                              </div>
+                            ) : (
+                              <>
+                                {unlockRequest?.status === 'rejected' && (
+                                  <div style={{ fontSize: '11px', color: '#f87171', fontStyle: 'italic', textAlign: 'center' }}>
+                                    Previous unlock request was rejected by HR.
+                                  </div>
+                                )}
+                                <button
+                                  type="button"
+                                  className="btn-primary"
+                                  disabled={requestingUnlock}
+                                  onClick={handleRequestUnlock}
+                                  style={{ width: '100%', padding: '10px 16px', fontSize: '13px', background: 'var(--primary-color)', borderColor: 'var(--primary-color)' }}
+                                >
+                                  {requestingUnlock ? 'Sending Request...' : '🔑 Request HR Unlock Approval'}
+                                </button>
+                              </>
+                            )}
+                          </div>
                         )}
-                      </>
-                    )}
-                  </form>
 
-                  {/* Print Invoice shortcut for already-paid bills */}
-                  {selectedBill?.paymentStatus === 'paid' && (
-                    <>
-                      <button
-                        type="button"
-                        onClick={() => generatePaymentInvoice({
-                          patientName: selectedBill.fullName || selectedBill.patientName || 'Patient',
-                          phone: selectedBill.phone || 'N/A',
-                          doctor: selectedBill.doctor || selectedBill.doctorName || 'General Doctor',
-                          branch: selectedBill.branchName || userData?.branchName || 'Clinic',
-                          date: selectedBill.appointmentDate || selectedBill.dateString || '',
-                          timeSlot: selectedBill.appointmentTime || selectedBill.timeSlot || 'N/A',
-                          amountPaid: selectedBill.amountPaid || selectedBill.paymentAmount || customFeeAmount,
-                          method: selectedBill.paymentMethod || 'cash',
-                          paymentId: selectedBill.paymentId || '',
-                          isSplit: selectedBill.paymentMethod === 'split',
-                          splitDetails: selectedBill.paymentSplitDetails || null, itemsPaid: item.raw?.itemsPaid || item.itemsPaid || selectedBill?.itemsPaid || tx?.itemsPaid || itemsPaid || null
-                        })}
-                        style={{ width: '100%', marginTop: '10px', padding: '10px', background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.3)', borderRadius: '8px', color: '#10b981', fontWeight: '700', fontSize: '13px', cursor: 'pointer' }}
-                      >
-                        🖨️ Print Invoice / Receipt
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleShareReceiptWhatsApp(selectedBill)}
-                        style={{ width: '100%', marginTop: '8px', padding: '10px', background: 'rgba(37,211,102,0.1)', border: '1px solid rgba(37,211,102,0.3)', borderRadius: '8px', color: '#25d366', fontWeight: '700', fontSize: '13px', cursor: 'pointer' }}
-                      >
-                        💬 Share Receipt on WhatsApp
-                      </button>
+                        {!isPaid && (
+                          <>
+                            {paymentLegs.length === 1 && paymentLegs[0].method === 'razorpay_qr' && (
+                              <div style={{ marginTop: '16px', textAlign: 'center', background: 'rgba(255,255,255,0.05)', padding: '16px', borderRadius: '12px' }}>
+                                {!razorpayQrCode ? (
+                                  <button
+                                    type="button"
+                                    onClick={generateRazorpayQR}
+                                    className="btn-primary"
+                                    disabled={loadingQr || !!pendingAmountRequest}
+                                    style={{ width: '100%', padding: '10px', fontSize: '13px' }}
+                                  >
+                                    {loadingQr ? 'Generating QR Code...' : '⚡ Generate UPI QR Code'}
+                                  </button>
+                                ) : (
+                                  <div>
+                                    <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '8px' }}>Scan the QR code below to pay</p>
+                                    <img
+                                      src={razorpayQrCode.image_url}
+                                      alt="UPI QR Code"
+                                      style={{ width: '180px', height: '180px', margin: '8px auto', display: 'block', borderRadius: '8px', border: '5px solid #fff' }}
+                                    />
+                                    <p style={{ fontSize: '11px', color: '#60a5fa', margin: '8px 0' }}>
+                                      ⏳ Waiting for payment confirmation...
+                                    </p>
+                                    <button
+                                      type="button"
+                                      onClick={stopQrPolling}
+                                      className="btn-secondary"
+                                      style={{ width: '100%', marginTop: '8px', fontSize: '12px', borderColor: 'var(--danger)', color: 'var(--danger)' }}
+                                    >
+                                      Cancel QR Payment
+                                    </button>
+                                  </div>
+                                )}
+                              </div>
+                            )}
+
+                            {!(paymentLegs.length === 1 && paymentLegs[0].method === 'razorpay_qr') && (
+                              <button type="submit" className="btn-primary" disabled={processingRzp || !!pendingAmountRequest} style={{ width: '100%', marginTop: '20px' }}>
+                                {paymentLegs.some(l => l.method === 'razorpay_checkout')
+                                  ? (processingRzp ? 'Opening Checkout...' : '⚡ Launch Razorpay Checkout')
+                                  : paymentLegs.some(l => l.method === 'app')
+                                    ? (paymentLegs.length > 1 ? '💰 Confirm Counter Collection + Send Balance to App' : '📱 Send Payment Request to Patient App')
+                                    : '✅ Mark Bill as Paid'}
+                              </button>
+                            )}
+                          </>
+                        )}
+                      </form>
+
+                      {/* Print Invoice shortcut for already-paid bills */}
+                      {selectedBill?.paymentStatus === 'paid' && (
+                        <>
+                          <button
+                            type="button"
+                            onClick={() => generatePaymentInvoice({
+                              patientName: selectedBill.fullName || selectedBill.patientName || 'Patient',
+                              phone: selectedBill.phone || 'N/A',
+                              doctor: selectedBill.doctor || selectedBill.doctorName || 'General Doctor',
+                              branch: selectedBill.branchName || userData?.branchName || 'Clinic',
+                              date: selectedBill.appointmentDate || selectedBill.dateString || '',
+                              timeSlot: selectedBill.appointmentTime || selectedBill.timeSlot || 'N/A',
+                              amountPaid: selectedBill.amountPaid || selectedBill.paymentAmount || customFeeAmount,
+                              method: selectedBill.paymentMethod || 'cash',
+                              paymentId: selectedBill.paymentId || '',
+                              isSplit: selectedBill.paymentMethod === 'split',
+                              splitDetails: selectedBill.paymentSplitDetails || null, itemsPaid: item.raw?.itemsPaid || item.itemsPaid || selectedBill?.itemsPaid || tx?.itemsPaid || itemsPaid || null
+                            })}
+                            style={{ width: '100%', marginTop: '10px', padding: '10px', background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.3)', borderRadius: '8px', color: '#10b981', fontWeight: '700', fontSize: '13px', cursor: 'pointer' }}
+                          >
+                            🖨️ Print Invoice / Receipt
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleShareReceiptWhatsApp(selectedBill)}
+                            style={{ width: '100%', marginTop: '8px', padding: '10px', background: 'rgba(37,211,102,0.1)', border: '1px solid rgba(37,211,102,0.3)', borderRadius: '8px', color: '#25d366', fontWeight: '700', fontSize: '13px', cursor: 'pointer' }}
+                          >
+                            💬 Share Receipt on WhatsApp
+                          </button>
+                        </>
+                      )}
                     </>
                   )}
                 </div>
